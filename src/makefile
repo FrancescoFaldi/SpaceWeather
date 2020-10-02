@@ -13,7 +13,7 @@ ODIR=obj
 _DEPS = header.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = main.o analisi.o
+_OBJ = main.o analisi.o ciclarray.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
