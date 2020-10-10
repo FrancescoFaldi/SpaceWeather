@@ -23,6 +23,7 @@ struct events{
 };
 
 void analisi();
+void theta_vs_phi();
 double media(vector<cutoff_bin> v,int &n, int bin);
 double varianza(vector<cutoff_bin> v, double mean, int bin);
 

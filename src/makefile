@@ -13,7 +13,7 @@ ODIR=obj
 _DEPS = header.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = main.o analisi.o ciclarray.o mean_and_sigma.o
+_OBJ = main.o analisi.o ciclarray.o mean_and_sigma.o theta_vs_phi.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
@@ -26,4 +26,4 @@ main: $(OBJ)
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ 
+	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~

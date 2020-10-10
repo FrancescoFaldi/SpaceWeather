@@ -18,20 +18,16 @@ void analisi(){
 	Short_t nsec;
 	Float_t nEvt;
 	UInt_t UTime;
-	Float_t rtiTheta;
-	Float_t rtiPhi;
 	Int_t rtiGood;
 	Float_t rtiNerr;
 	bool rtiSAA;
 	Float_t rtiLifetime;
 	Float_t rtiMaxIGRFCutoff[4][2];
 
-	TH2F* h= new TH2F("h","",100,-180,180,100,-60,60);
 	TGraph* gr=new TGraph(); // grafico dei valori di "quiete"
 	TGraph* gr1=new TGraph();// grafico dei valori di attività solare
 	TMultiGraph *mg = new TMultiGraph();
 	TCanvas* c=new TCanvas();
-	c->Divide(1,2);
 	TChain* t=new TChain("tree;2");
 
 	t->Add("../Dati/201201_60s.root");
@@ -50,8 +46,6 @@ void analisi(){
 	t->SetBranchAddress("nsec", &nsec);
 	t->SetBranchAddress("nEvt", &nEvt);
 	t->SetBranchAddress("UTime", &UTime);
-	t->SetBranchAddress("rtiTheta", &rtiTheta);
-	t->SetBranchAddress("rtiPhi", &rtiPhi);
 	t->SetBranchAddress("rtiGood", &rtiGood);
 	t->SetBranchAddress("rtiNerr", &rtiNerr);
 	t->SetBranchAddress("rtiSAA", &rtiSAA);
@@ -108,7 +102,6 @@ void analisi(){
 	for(int i=0; i<t->GetEntries(); i++){
 		t->GetEntry(i);
 		if(rtiGood==0 && rtiNerr==0 && rtiSAA==false && nsec>0 && nsec<=60 && rtiLifetime>1e-4){ //taglio
-			//h->Fill(rtiPhi,rtiTheta,rtiMaxIGRFCutoff[0][1]);
 
 			triggerrate=nEvt/rtiLifetime;
 
@@ -193,7 +186,7 @@ void analisi(){
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	TFile* risultati=new TFile("../risultati.root", "RECREATE");
+	TFile* risultati=new TFile("../analisi.root", "RECREATE");
 
 	gROOT->Macro("../macros/rootstyle.C");
 
@@ -206,14 +199,11 @@ void analisi(){
 	mg->Add(gr1,"p");
 	mg->SetTitle("Trigger Rate VS Unix Time 2012");
 
-	c->cd(1);
+	c->cd();
 	mg->Draw();
-	c->cd(2);
-	h->Draw("COLZ");
 	c->Draw();
 
 	mg->Write("mg");
-	h->Write();
 
 	risultati->Close();
 }
