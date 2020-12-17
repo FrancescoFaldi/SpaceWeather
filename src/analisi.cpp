@@ -30,18 +30,7 @@ void analisi(){
 	TCanvas* c=new TCanvas();
 	TChain* t=new TChain("tree;2");
 
-	t->Add("../Dati/201201_60s.root");
-	t->Add("../Dati/201202_60s.root");
-	t->Add("../Dati/201203_60s.root");
-	t->Add("../Dati/201204_60s.root");
-	t->Add("../Dati/201205_60s.root");
-	t->Add("../Dati/201206_60s.root");
-	t->Add("../Dati/201207_60s.root");
-	t->Add("../Dati/201208_60s.root");
-	t->Add("../Dati/201209_60s.root");
-	t->Add("../Dati/201210_60s.root");
-	t->Add("../Dati/201211_60s.root");
-	t->Add("../Dati/201212_60s.root");
+	t->Add("../Dati/2012*_60s.root");
 
 	t->SetBranchAddress("nsec", &nsec);
 	t->SetBranchAddress("nEvt", &nEvt);
@@ -54,8 +43,8 @@ void analisi(){
 
 //ANALISI ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	vector<cutoff_bin> v; // contiene i valori del trigger rate per cui il cutoff è < 2 GV, viene svuotato ogni ciclo di precessione orbitale
-	vector<events> ev;
+	vector<bin> v; // contiene i valori del trigger rate per cui il cutoff è < 2 GV, viene svuotato ogni ciclo di precessione orbitale
+	vector<bin> ev;
 	ciclarray* b = new ciclarray(); //array ciclico di 5 elementi, contiene media, varianza e N del vettore v per 5 cicli orbitali
 
 	int e=0;
@@ -108,32 +97,30 @@ void analisi(){
 			if(rtiMaxIGRFCutoff[0][1]<2){ //condizione di sensibilità
 
 				test=(int)rtiMaxIGRFCutoff[0][1]; //stabilisco in quale bin di cutoff mi trovo
-				if(test>0) cutoff_slice= (int)(rtiMaxIGRFCutoff[0][1]*10-10);
+				if(test>0) cutoff_slice= (int)(rtiMaxIGRFCutoff[0][1]*10-10); // 0-1 , 1.1 , 1.2 , 1.3 ... 1.9
 				else cutoff_slice = 0;
 
-				N=0; //calcolo la media e combino la varianza dei 5 precedenti periodi di quiete
+				N=0; //calcolo la media pesata e combino la varianza dei 5 precedenti periodi di quiete
 				mu=0;
 				sigma=0;
 
 				for(int j=0; j<5; j++){
 					mu = mu + b->get_value(j,2,cutoff_slice) * b->get_value(j,0,cutoff_slice);
-					N = N + b->get_value(j,2,cutoff_slice);
+					if(b->get_value(j,2,cutoff_slice)>1) N = N + b->get_value(j,2,cutoff_slice);
 				}
 
 				mu = mu / N;
 
-				N=0;
 				for(int j=0; j<5; j++){
 					sigma = sigma + b->get_value(j,2,cutoff_slice) * ( b->get_value(j,1,cutoff_slice) + pow(b->get_value(j,0,cutoff_slice)-mu,2) );
-					if(b->get_value(j,2,cutoff_slice)>1) N = N + b->get_value(j,2,cutoff_slice);
 				}
 
 				sigma = sqrt(sigma / N);
 
 				//a questo punto decido se nel periodo di sensibilità c'è attività o meno
 
-				if(  (triggerrate - mu)/sigma >5   ) //il trigger rate si discosta eccessivamente dalla media dei tre cicli precedenti?
-					ev.push_back({triggerrate, UTime});// se è vero lo metto in questo vettore, ma non nel vettore v
+				if( N>10 && (triggerrate - mu)/sigma >5   ) //il trigger rate si discosta eccessivamente dalla media dei tre cicli precedenti?
+					ev.push_back({triggerrate, cutoff_slice, UTime});// se è vero lo metto in questo vettore, ma non nel vettore v
 
 				else{
 					v.push_back({triggerrate,cutoff_slice});
@@ -167,23 +154,25 @@ void analisi(){
 //e disegno in rosso gli eventi identificati come "attività"
 
 	e=0;
-	vector<events> ev_good;
-	vector<events> temp;
+	vector<bin> ev_good;
+	vector<bin> temp;
 	for(int i=0; i<ev.size(); i++){
-		temp.push_back({ev[i].triggerrate, ev[i].UTime});
+		temp.push_back({ev[i].triggerrate, ev[i].cutoff_slice, ev[i].UTime});
 		e++;
-		if(e<4 && (ev[i+1].UTime - temp[e-1].UTime) >30000){
+		if(e<4 && (ev[i+1].UTime - ev[i].UTime) >30000){
 			temp.clear();
 			e=0;
 		}
-		if(e>4 && (ev[i+1].UTime - temp[e-1].UTime) >30000){
-			for(int j=0; j<temp.size(); j++) ev_good.push_back({temp[j].triggerrate, temp[j].UTime});
+		if(e>4 && (ev[i+1].UTime - ev[i].UTime) >30000){
+			for(int j=0; j<temp.size(); j++) ev_good.push_back({temp[j].triggerrate, temp[j].cutoff_slice, temp[j].UTime});
 			temp.clear();
 			e=0;
 		}
 	}
-	for(int i=0; i<ev_good.size(); i++) gr1->SetPoint(i, ev_good[i].UTime, ev_good[i].triggerrate);
-
+	for(int i=0; i<ev_good.size(); i++){
+		gr1->SetPoint(i, ev_good[i].UTime, ev_good[i].triggerrate);
+//		cout<<ev_good[i].cutoff_slice<<endl;
+	}
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	TFile* risultati=new TFile("../analisi.root", "RECREATE");

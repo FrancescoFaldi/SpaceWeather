@@ -4,7 +4,7 @@
 #include <bits/stdc++.h>
 using namespace std; 
 
-double media(vector<cutoff_bin> v,int &n, int bin){
+double media(vector<bin> v,int &n, int bin){
 	n=0;
 	double mean=0;
 	for(int i=0; i<v.size(); i++)
@@ -17,7 +17,7 @@ double media(vector<cutoff_bin> v,int &n, int bin){
 	else return 0;
 }
 
-double varianza(vector<cutoff_bin> v, double mean, int bin){
+double varianza(vector<bin> v, double mean, int bin){
 	int n=0;
 	double var=0;
 	for(int i=0; i<v.size(); i++)

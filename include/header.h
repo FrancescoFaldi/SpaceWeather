@@ -12,20 +12,16 @@
 #include <bits/stdc++.h>
 using std::vector;
 
-struct cutoff_bin{
+struct bin{
 	double triggerrate;
 	int cutoff_slice;
-};
-
-struct events{
-	double triggerrate;
 	UInt_t UTime;
 };
 
 void analisi();
 void theta_vs_phi();
-double media(vector<cutoff_bin> v,int &n, int bin);
-double varianza(vector<cutoff_bin> v, double mean, int bin);
+double media(vector<bin> v,int &n, int bin);
+double varianza(vector<bin> v, double mean, int bin);
 
 class ciclarray{
 	int size;
